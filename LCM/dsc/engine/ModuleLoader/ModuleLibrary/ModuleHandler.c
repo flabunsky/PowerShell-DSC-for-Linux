@@ -950,6 +950,9 @@ MI_Result FilterForConfigurationResource(_Inout_ MI_InstanceA *inputInstanceArra
     MI_Instance **tempOutput = NULL;
     MI_Boolean bDocumentInstance = MI_FALSE;
 
+    MI_Value value;
+    MI_Char* resourceId;
+
     if (extendedError == NULL)
     {
         return MI_RESULT_INVALID_PARAMETER;
@@ -995,13 +998,21 @@ MI_Result FilterForConfigurationResource(_Inout_ MI_InstanceA *inputInstanceArra
             // Resource must contain resourceID as mandatory parameter.
             if(inputInstanceArray->data[xCount]->classDecl->superClass != NULL && Tcscasecmp(inputInstanceArray->data[xCount]->classDecl->superClass, BASE_RESOURCE_CLASSNAME) == 0 )
             {
-                r = DSC_MI_Instance_GetElement(inputInstanceArray->data[xCount], OMI_BaseResource_ResourceId, NULL, NULL, &flags, NULL);
+                r = DSC_MI_Instance_GetElement(inputInstanceArray->data[xCount], OMI_BaseResource_ResourceId, &value, NULL, &flags, NULL);
                 if( r != MI_RESULT_OK || (flags & MI_FLAG_NULL))
                 {
                     CleanUpInstanceCache(inputInstanceArray);
                     DSC_free(embeddedResourceMap);
                     return GetCimMIError(MI_RESULT_INVALID_PARAMETER, extendedError,ID_MODMAN_FILTER_RESOURCEID);
                 }
+
+                // Add DSC-version-specific modifier to resource ID
+                resourceIdSize = strlen(value.string) + strlen(DSC_VERSION_RESOURCE_MODIFIER) + 1;
+                resourceId = DSC_malloc(resourceIdSize, NitsHere());
+                snprintf(resourceId, resourceIdSize, "%s%s", value.string, DSC_VERSION_RESOURCE_MODIFIER);
+
+                DSC_free(value.string);
+                value.string = resourceId;
             }
             embeddedResourceMap[xCount] = 1;
         }

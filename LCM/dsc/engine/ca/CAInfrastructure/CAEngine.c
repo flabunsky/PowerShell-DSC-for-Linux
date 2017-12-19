@@ -1901,11 +1901,13 @@ const MI_Char * GetResourceId( _In_ MI_Instance *inst)
 {
     MI_Result r = MI_RESULT_OK;
     MI_Value value;
+
     r = MI_Instance_GetElement(inst, OMI_BaseResource_ResourceId, &value, NULL, NULL, NULL);
     if( r != MI_RESULT_OK)
     {
         return NULL;
     }
+
     return (const MI_Char*)value.string;
 }
 
